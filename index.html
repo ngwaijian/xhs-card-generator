@@ -401,7 +401,7 @@
 
         createApp({
             setup() {
-                const locale = ref('en')
+                const locale = ref('zh')
                 const isDark = ref(false)
                 
                 const t = (key) => {
@@ -437,37 +437,51 @@
                 const scanReport = ref([])
                 
                 const scanSensitiveWords = () => {
-                    const fullText = (title.value + ' ' + content.value)
-                    
-                    const report = [
-                        { id: 'catAd', name: t('catAd'), why: t('catAdWhy'), fix: t('catAdFix'), words: ['最佳', '最具', '最爱', '第一', '首选', '顶级', '极致', '极品', '独一无二', '万能', '全网首发', '史无前例', '永久', '无敌', '最好用', '最便宜', '销量冠军', '绝对'], issues: [] },
-                        { id: 'catMkt', name: t('catMkt'), why: t('catMktWhy'), fix: t('catMktFix'), words: ['下单', '购买', '淘宝', '天猫', '京东', '拼多多', '秒杀', '免费领取', '返利', '微信', '微信号', '手机号', 'QQ', '二维码', '加我', '私信领', '私信我', '链接', '代购', '赚钱', '求关注'], issues: [] },
-                        { id: 'catMed', name: t('catMed'), why: t('catMedWhy'), fix: t('catMedFix'), words: ['治疗', '治愈', '药方', '根治', '消炎', '抗炎', '消斑', '排毒', '增强免疫力', '调节内分泌', '算命', '化解小人', '转运', '招财进宝', '逢考必过'], issues: [] },
-                        { id: 'catPol', name: t('catPol'), why: t('catPolWhy'), fix: t('catPolFix'), words: ['警察', '城管', '保安', '维稳', '查水表', '暴乱', '游行', '集会', '维权', '报警', '国家级', '特供', '政府', '体制内', '贪污', '黑幕', '翻墙', '删帖', '封号'], issues: [] }
-                    ]
-                    
-                    report.forEach(category => {
-                        category.words.forEach(word => {
-                            const regex = new RegExp(word, 'gi')
-                            let match;
-                            while ((match = regex.exec(fullText)) !== null) {
-                                const start = Math.max(0, match.index - 12)
-                                const end = Math.min(fullText.length, match.index + word.length + 12)
-                                const context = fullText.substring(start, end).replace(/\n/g, ' ')
-                                
-                                if (!category.issues.some(r => r.word === word)) {
-                                    category.issues.push({
-                                        word: word,
-                                        context: context
-                                    })
-                                }
-                            }
-                        })
-                    })
-                    
-                    scanReport.value = report
-                    showScanModal.value = true
+    const fullText = (title.value + ' ' + content.value)
+    
+    const report = [
+        { id: 'catAd', name: t('catAd'), why: t('catAdWhy'), fix: t('catAdFix'), words: ['最', '第一', '唯一', '首个', '首选', '绝对', '永远', '无敌', '万能', '百分百', '100%', '终极', '顶级', '绝版', '极品', '史上', '国家级', '世界级', '全网', '全球', '顶尖', '特供', '专供', '极致', '绝无仅有'], issues: [] },
+        { id: 'catMkt', name: t('catMkt'), why: t('catMktWhy'), fix: t('catMktFix'), words: ['微信', 'vx', 'v信', 'wechat', '淘宝', 'tb', '拼多多', 'pdd', '抖音', 'dy', '快手', 'qq', '二维码', '扫码', '私信', '链接', '代购', '下单', '淘宝口令', '点击链接', '关注我', '点赞', '评论', '转发', '抽奖', '免单', '红包', '赚钱', '兼职', '日入', '稳赚', '一键三连', '秒杀', '抢爆', '福利'], issues: [] },
+        { id: 'catMed', name: t('catMed'), why: t('catMedWhy'), fix: t('catMedFix'), words: ['治疗', '治愈', '根治', '药到病除', '消炎', '杀菌', '抗癌', '防癌', '肿瘤', '包生男', '生发', '防脱发', '壮阳', '补肾', '排毒', '减肥', '瘦身', '降压', '降糖', '延年益寿', '包治百病', '神药', '处方', '医美', '整容', '增强免疫力', '调节内分泌', '包过'], issues: [] },
+        { id: 'catPol', name: t('catPol'), why: t('catPolWhy'), fix: t('catPolFix'), words: ['警察', '公安', '城管', '保安', '海关', '审查', '政府', '国家领导人', '政治', '维权', '游行', '抗议', '罢工', '群体事件', '翻墙', 'vpn', '禁片', '色情', '赌博', '毒品', '大尺度', '露点', '走光', '自杀', '抑郁', '暴力', '血腥', '杀人', '特供', '国家免检'], issues: [] }
+    ]
+    
+    report.forEach(category => {
+        category.words.forEach(word => {
+            if (word === '最') {
+                const regex = new RegExp('(最佳|最强|最好|最便宜|最美|最高|最划算|最新|最低|最牛|最棒)', 'gi')
+                let match;
+                while ((match = regex.exec(fullText)) !== null) {
+                    const start = Math.max(0, match.index - 10)
+                    const end = Math.min(fullText.length, match.index + match[0].length + 10)
+                    const context = fullText.substring(start, end).replace(/\n/g, ' ')
+                    if (!category.issues.some(r => r.word === match[0])) {
+                        category.issues.push({ word: match[0], context })
+                    }
                 }
+                return
+            }
+
+            const regex = new RegExp(word, 'gi')
+            let match;
+            while ((match = regex.exec(fullText)) !== null) {
+                const start = Math.max(0, match.index - 10)
+                const end = Math.min(fullText.length, match.index + word.length + 10)
+                const context = fullText.substring(start, end).replace(/\n/g, ' ')
+                
+                if (!category.issues.some(r => r.word === word)) {
+                    category.issues.push({
+                        word: word,
+                        context: context
+                    })
+                }
+            }
+        })
+    })
+    
+    scanReport.value = report
+    showScanModal.value = true
+}
 
                 const cardDimensions = computed(() => {
                     switch (cardRatio.value) {
