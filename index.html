@@ -302,64 +302,12 @@
                     <span v-else>{{ t('exportBtn').replace('{n}', calculatedPages.length) }}</span>
                 </button>
             </div>
-        </div>
-        
-    </div>
-
-    <!-- Sensitive Words Modal -->
-    <div v-if="showScanModal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] flex items-center justify-center p-4" @click.self="showScanModal = false">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
-                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                    {{ t('scanTitle') }}
-                </h2>
-                <button @click="showScanModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-bold text-2xl leading-none">&times;</button>
-            </div>
-            
-            <div class="p-6 overflow-y-auto">
-                
-                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">{{ t('scanIssuesFound') }}</p>
-
-                <div class="flex flex-col gap-4">
-                    <div v-for="(report, idx) in scanReport" :key="idx" class="border rounded-lg overflow-hidden" :class="report.issues.length === 0 ? 'border-green-200 dark:border-green-900/50' : 'border-red-200 dark:border-red-900/50'">
-                        
-                        <!-- Category Header -->
-                        <div class="p-3 flex justify-between items-center" :class="report.issues.length === 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'">
-                            <span class="font-bold text-sm" :class="report.issues.length === 0 ? 'text-green-800 dark:text-green-400' : 'text-red-800 dark:text-red-400'">
-                                {{ report.name }}
-                            </span>
-                            <span class="text-xs font-bold px-2 py-1 rounded" :class="report.issues.length === 0 ? 'bg-green-100 dark:bg-green-800/50 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-800/50 text-red-700 dark:text-red-300'">
-                                {{ report.issues.length === 0 ? t('scanPassed') : t('scanFailed') + ' (' + report.issues.length + ')' }}
-                            </span>
-                        </div>
-                        
-                        <!-- Explanations & Results -->
-                        <div class="p-3 bg-white dark:bg-gray-800 text-xs">
-                            <div class="mb-3 text-gray-600 dark:text-gray-400">
-                                <p><b class="text-gray-800 dark:text-gray-200">{{ t('reasonLabel') }}</b> {{ report.why }}</p>
-                                <p class="mt-1"><b class="text-gray-800 dark:text-gray-200">{{ t('suggestLabel') }}</b> {{ report.fix }}</p>
-                            </div>
-                            
-                            <!-- Issue List -->
-                            <div v-if="report.issues.length > 0" class="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-700 pt-3">
-                                <div v-for="(issue, i) in report.issues" :key="i" class="flex items-start gap-2">
-                                    <span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">{{ issue.word }}</span>
-                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 italic">"...{{ issue.context }}..."</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-
-            </div>
-            
-            <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-right">
                 <button @click="showScanModal = false" class="bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors shadow">{{ t('closeBtn') }}</button>
             </div>
         </div>
     </div>
+    
+    </div> <!-- End of #app -->
 
     <script>
         if ('serviceWorker' in navigator) {
