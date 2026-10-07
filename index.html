@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>XHS Card Generator</title>
+    
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="XHS Cards">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/192px-GitHub_Invertocat_Logo.svg.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <style>
+        .bg-dots {
+            background-color: #ffffff;
+            background-image: radial-gradient(#e5e7eb 2px, transparent 2px);
+            background-size: 24px 24px;
+        }
+        .card-container {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: relative;
+        }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent body scroll, handle inside app */
+        }
+        .preview-scroll::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .preview-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .paragraph-text:empty::before {
+            content: "\200b"; 
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="h-[100dvh] w-full flex flex-col lg:flex-row bg-gray-100">
+        
+        <!-- Preview Area (Order 1 Mobile / Order 2 Desktop) -->
+        <div class="order-1 lg:order-2 w-full lg:w-2/3 flex flex-col preview-scroll overflow-auto h-[45vh] lg:h-full p-4 lg:p-8 bg-gray-200 lg:bg-transparent shadow-inner lg:shadow-none z-0">
+            <div class="flex items-start gap-8 min-w-max pb-4 lg:pb-8 lg:pr-8">
+                <!-- Mobile scales to 40%, iPad/Desktop to 60% -->
+                <div class="transform scale-[0.4] md:scale-[0.5] lg:scale-[0.6] 2xl:scale-75 origin-top-left flex shrink-0 gap-6 lg:gap-8">
+                    
+                    <!-- Generated Page Cards -->
+                    <div 
+                        v-for="(page, index) in calculatedPages"
+                        :key="index"
+                        :id="'export-card-' + (index + 1)"
+                        class="card-container flex flex-col transition-all duration-300 relative overflow-hidden shrink-0"
+                        :class="[bgStyle === 'dots' ? 'bg-dots' : (bgStyle === 'plain' ? 'bg-white' : '')]"
+                        :style="{ width: cardDimensions.width, height: cardDimensions.height }"
+                    >
+                        <!-- Background -->
+                        <div v-if="bgStyle === 'image' && bgImageUrl" 
+                             class="absolute inset-0 z-0 opacity-30 bg-cover bg-center"
+                             :style="{ backgroundImage: `url(${bgImageUrl})` }">
+                        </div>
+
+                        <!-- Inner Wrapper -->
+                        <div class="relative w-full h-full z-10 flex flex-col" :style="{ padding: safeMargin + 'px' }">
+                            <div 
+                                v-if="page.title" 
+                                class="leading-snug whitespace-pre-wrap drop-shadow-sm tracking-wide mb-6 shrink-0"
+                                style="word-break: break-word;"
+                                :class="titleClasses"
+                                :style="{ fontFamily: titleFont }"
+                            >{{ page.title }}</div>
+
+                            <div class="flex flex-col flex-grow" :style="{ gap: '1rem' }">
+                                <template v-for="(block, i) in page.elements" :key="i">
+                                    <div 
+                                        v-if="block.type === 'text'"
+                                        class="leading-relaxed whitespace-pre-wrap drop-shadow-sm paragraph-text shrink-0"
+                                        style="word-break: break-word;"
+                                        :class="contentClasses"
+                                        :style="{ fontFamily: contentFont }"
+                                    >{{ block.content }}</div>
+                                    
+                                    <div v-if="block.type === 'image'" class="w-full flex justify-center mt-2 mb-2 shrink-0">
+                                        <img :src="block.src" class="max-w-full rounded-lg shadow-md z-20 relative" style="max-height: 400px; object-fit: contain;" />
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <!-- Hidden Measurer -->
+            <div class="fixed top-0 left-0 opacity-0 pointer-events-none" style="z-index: -9999; visibility: hidden;">
+                <div :style="{ width: cardDimensions.width }" class="relative">
+                    <div id="measure-container" class="relative w-full flex flex-col" :style="{ padding: safeMargin + 'px' }"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor Panel (Order 2 Mobile / Order 1 Desktop) -->
+        <div class="order-2 lg:order-1 w-full lg:w-1/3 bg-white p-4 lg:p-6 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] lg:shadow-xl flex flex-col flex-grow lg:h-full z-10">
+            <h1 class="text-xl font-bold mb-3 text-gray-800 hidden lg:block">Card Editor</h1>
+            
+            <!-- Tabs -->
+            <div class="flex gap-4 mb-3 border-b border-gray-200 shrink-0">
+                <button 
+                    @click="activeTab = 'text'" 
+                    class="pb-2 text-sm font-bold border-b-2 transition-colors flex-1 lg:flex-none text-center lg:text-left" 
+                    :class="activeTab === 'text' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                >1. Edit Text</button>
+                <button 
+                    @click="activeTab = 'design'" 
+                    class="pb-2 text-sm font-bold border-b-2 transition-colors flex-1 lg:flex-none text-center lg:text-left" 
+                    :class="activeTab === 'design' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                >2. Layout & Style</button>
+            </div>
+
+            <!-- Tab Content Area -->
+            <div class="flex-grow overflow-y-auto pr-2 pb-2" style="scrollbar-width: thin;">
+                
+                <!-- TEXT TAB -->
+                <div v-show="activeTab === 'text'" class="flex flex-col gap-4">
+                    <div>
+                        <label class="text-sm font-bold text-gray-800 mb-1 block">Title</label>
+                        <div class="flex gap-2 mb-2">
+                            <select v-model="titleFont" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                                <option value="'Noto Sans SC', sans-serif">Modern (Sans)</option>
+                                <option value="'Noto Serif SC', serif">Classic (Serif)</option>
+                                <option value="'ZCOOL KuaiLe', cursive">Playful</option>
+                                <option value="'Ma Shan Zheng', cursive">Handwriting</option>
+                            </select>
+                            <select v-model="titleSize" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                                <option value="h1">Heading 1</option>
+                                <option value="h2">Heading 2</option>
+                                <option value="h3">Heading 3</option>
+                            </select>
+                        </div>
+                        <textarea 
+                            v-model="title" 
+                            class="w-full h-16 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                            placeholder="Enter title here..."
+                        ></textarea>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-sm font-bold text-gray-800">Caption / Content</label>
+                            <span class="text-[9px] lg:text-[10px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">Type [image1] to place!</span>
+                        </div>
+                        <div class="flex gap-2 mb-2">
+                            <select v-model="contentFont" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                                <option value="'Noto Sans SC', sans-serif">Modern (Sans)</option>
+                                <option value="'Noto Serif SC', serif">Classic (Serif)</option>
+                                <option value="'ZCOOL KuaiLe', cursive">Playful</option>
+                                <option value="'Ma Shan Zheng', cursive">Handwriting</option>
+                            </select>
+                            <select v-model="contentSize" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                                <option value="lg">Large</option>
+                                <option value="base">Normal</option>
+                                <option value="sm">Small</option>
+                            </select>
+                        </div>
+                        <textarea 
+                            v-model="content" 
+                            class="w-full h-32 lg:h-48 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                            placeholder="Type your content here..."
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- DESIGN TAB -->
+                <div v-show="activeTab === 'design'" class="flex flex-col gap-5">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-1">Card Aspect Ratio</label>
+                        <select v-model="cardRatio" class="w-full p-2 bg-gray-50 border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+                            <option value="3:4">Standard Vertical (3:4)</option>
+                            <option value="9:16">Full Phone Vertical (9:16)</option>
+                            <option value="1:1">Square (1:1)</option>
+                            <option value="4:3">Standard Horizontal (4:3)</option>
+                            <option value="16:9">Wide Horizontal (16:9)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-1">Upload Multiple Photos</label>
+                        <input 
+                            type="file" 
+                            multiple
+                            @change="handleImageUpload" 
+                            accept="image/*"
+                            class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        >
+                        <div v-if="images.length > 0" class="mt-2 flex flex-wrap gap-2 p-2 bg-gray-50 rounded border border-gray-200">
+                            <div v-for="(img, idx) in images" :key="idx" class="relative inline-block text-center group">
+                                <img :src="img" class="h-12 w-12 object-cover rounded border border-gray-300 shadow-sm" />
+                                <span class="block text-[9px] font-bold text-blue-600 mt-1 select-all">[image{{ idx + 1 }}]</span>
+                                <button @click="removeImage(idx)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-red-600 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800 mb-1">Card Background</label>
+                        <div class="flex flex-wrap gap-3 mb-2 text-sm">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" v-model="bgStyle" value="dots" class="mr-1"> Dots
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" v-model="bgStyle" value="plain" class="mr-1"> Plain White
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" v-model="bgStyle" value="image" class="mr-1"> Custom
+                            </label>
+                        </div>
+                        
+                        <div v-if="bgStyle === 'image'" class="mt-1">
+                            <input 
+                                type="file" 
+                                @change="handleBgUpload" 
+                                accept="image/*"
+                                class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-100">
+                        <label class="block text-sm font-bold text-gray-800 mb-1">Advanced: Safe Margin</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" v-model="safeMargin" min="16" max="120" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <span class="text-xs font-medium text-gray-600 min-w-[32px]">{{ safeMargin }}px</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Export Button -->
+            <div class="mt-2 pt-3 border-t border-gray-200 shrink-0">
+                <button 
+                    @click="exportImage" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl transition-colors flex justify-center items-center gap-2 text-sm lg:text-base shadow-sm"
+                    :disabled="isExporting"
+                >
+                    <span v-if="isExporting">Exporting...</span>
+                    <span v-else>Export {{ calculatedPages.length }} Pages</span>
+                </button>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // Service Worker Registration for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        const { createApp, ref, computed, watch, nextTick, onMounted } = Vue
+
+        createApp({
+            setup() {
+                const activeTab = ref('text')
+                const title = ref('带爸妈飞有多慌？\n最怕Landing砸锅')
+                const titleFont = ref("'Noto Sans SC', sans-serif")
+                const titleSize = ref('h1')
+                const content = ref('太紧张了，准备了稿，也读错几个字，还好听不清？\n🤣\n\n[image1]\n\n就这样，谢谢当天的Capt and 组员的招待和帮助，谢谢天气不错，飞机okay，过程也okay，虽然差一点medical emergency。\n\n[image2]\n\n还好全部都还算顺利，落地 也okay，就这样又创造了一个有意义的回忆的一天。')
+                const contentFont = ref("'Noto Sans SC', sans-serif")
+                const contentSize = ref('base')
+                const images = ref([]) 
+                const bgImageUrl = ref('')
+                const isExporting = ref(false)
+                const bgStyle = ref('dots')
+                const cardRatio = ref('3:4')
+                const safeMargin = ref(48) 
+                const calculatedPages = ref([])
+                
+                const cardDimensions = computed(() => {
+                    switch (cardRatio.value) {
+                        case '3:4': return { width: '768px', height: '1024px' }
+                        case '9:16': return { width: '720px', height: '1280px' }
+                        case '1:1': return { width: '800px', height: '800px' }
+                        case '4:3': return { width: '1024px', height: '768px' }
+                        case '16:9': return { width: '1280px', height: '720px' }
+                        default: return { width: '768px', height: '1024px' }
+                    }
+                })
+
+                const titleClasses = computed(() => {
+                    if (titleSize.value === 'h1') return 'text-5xl md:text-6xl font-black'
+                    if (titleSize.value === 'h2') return 'text-4xl md:text-5xl font-bold'
+                    return 'text-3xl md:text-4xl font-bold' 
+                })
+
+                const contentClasses = computed(() => {
+                    if (contentSize.value === 'lg') return 'text-3xl font-medium'
+                    if (contentSize.value === 'base') return 'text-2xl font-medium'
+                    return 'text-xl font-normal' 
+                })
+
+                const repaginate = () => {
+                    const container = document.getElementById('measure-container')
+                    if (!container) return
+                    
+                    const maxHeight = parseInt(cardDimensions.value.height)
+                    const pages = []
+                    let currentPage = { title: '', elements: [] }
+                    
+                    container.innerHTML = '' 
+                    
+                    if (title.value) {
+                        const titleEl = document.createElement('div')
+                        titleEl.className = titleClasses.value + ' mb-6 whitespace-pre-wrap shrink-0'
+                        titleEl.style.fontFamily = titleFont.value
+                        titleEl.innerText = title.value
+                        container.appendChild(titleEl)
+                        
+                        if (container.offsetHeight > maxHeight) {
+                            pages.push({ title: title.value, elements: [] })
+                            container.innerHTML = '' 
+                        } else {
+                            currentPage.title = title.value
+                        }
+                    }
+                    
+                    const paras = content.value.split('\n')
+                    let contentWrapper = document.createElement('div')
+                    contentWrapper.className = 'flex flex-col flex-grow'
+                    contentWrapper.style.gap = '1rem'
+                    container.appendChild(contentWrapper)
+                    
+                    let usedImageIndices = new Set()
+
+                    for (let p of paras) {
+                        const trimmed = p.trim()
+                        let match = trimmed.match(/^\[image(\d*)\]$/i)
+                        
+                        if (match) {
+                            let imgIndex = match[1] ? parseInt(match[1]) - 1 : 0
+                            let src = images.value[imgIndex]
+                            
+                            if (src) {
+                                usedImageIndices.add(imgIndex)
+                                const imgEl = document.createElement('img')
+                                imgEl.src = src
+                                imgEl.style.maxHeight = '400px'
+                                imgEl.style.objectFit = 'contain'
+                                imgEl.style.marginTop = '8px'
+                                imgEl.style.marginBottom = '8px'
+                                contentWrapper.appendChild(imgEl)
+                                
+                                if (container.offsetHeight > maxHeight) {
+                                    contentWrapper.removeChild(imgEl)
+                                    if (currentPage.title || currentPage.elements.length > 0) {
+                                        pages.push({...currentPage})
+                                    }
+                                    currentPage = { title: '', elements: [{ type: 'image', src: src }] }
+                                    container.innerHTML = ''
+                                    const newWrapper = document.createElement('div')
+                                    newWrapper.className = 'flex flex-col flex-grow'
+                                    newWrapper.style.gap = '1rem'
+                                    container.appendChild(newWrapper)
+                                    newWrapper.appendChild(imgEl)
+                                    contentWrapper = newWrapper
+                                } else {
+                                    currentPage.elements.push({ type: 'image', src: src })
+                                }
+                            }
+                            continue 
+                        }
+                        
+                        const pEl = document.createElement('div')
+                        pEl.innerText = p
+                        if (p.trim() === '') pEl.innerHTML = '\u200b'
+                        pEl.className = contentClasses.value + ' leading-relaxed whitespace-pre-wrap shrink-0'
+                        pEl.style.fontFamily = contentFont.value
+                        pEl.style.wordBreak = 'break-word'
+                        contentWrapper.appendChild(pEl)
+                        
+                        if (container.offsetHeight > maxHeight) {
+                            contentWrapper.removeChild(pEl)
+                            if (currentPage.title || currentPage.elements.length > 0) {
+                                pages.push({...currentPage})
+                            }
+                            currentPage = { title: '', elements: [{ type: 'text', content: p }] }
+                            container.innerHTML = ''
+                            const newWrapper = document.createElement('div')
+                            newWrapper.className = 'flex flex-col flex-grow'
+                            newWrapper.style.gap = '1rem'
+                            container.appendChild(newWrapper)
+                            newWrapper.appendChild(pEl)
+                            contentWrapper = newWrapper
+                        } else {
+                            currentPage.elements.push({ type: 'text', content: p })
+                        }
+                    }
+                    
+                    for (let i = 0; i < images.value.length; i++) {
+                        if (!usedImageIndices.has(i)) {
+                            const estimatedImgHeight = 424 
+                            if (container.offsetHeight + estimatedImgHeight > maxHeight) {
+                                if (currentPage.title || currentPage.elements.length > 0) {
+                                    pages.push({...currentPage})
+                                }
+                                currentPage = { title: '', elements: [{ type: 'image', src: images.value[i] }] }
+                            } else {
+                                currentPage.elements.push({ type: 'image', src: images.value[i] })
+                            }
+                        }
+                    }
+                    
+                    if (currentPage.title || currentPage.elements.length > 0) {
+                        pages.push(currentPage)
+                    }
+                    
+                    if (pages.length === 0) {
+                        pages.push({ title: '', elements: [] })
+                    }
+                    
+                    calculatedPages.value = pages
+                }
+
+                watch([title, titleFont, titleSize, content, contentFont, contentSize, images, cardRatio, safeMargin], () => {
+                    nextTick(() => {
+                        repaginate()
+                    })
+                }, { deep: true, immediate: true })
+
+                onMounted(() => {
+                    setTimeout(() => repaginate(), 100)
+                })
+
+                const handleImageUpload = (event) => {
+                    const files = event.target.files
+                    if (!files) return
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i]
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                            images.value.push(e.target.result)
+                        }
+                        reader.readAsDataURL(file)
+                    }
+                    event.target.value = '' 
+                }
+                
+                const removeImage = (index) => {
+                    images.value.splice(index, 1)
+                }
+
+                const handleBgUpload = (event) => {
+                    const file = event.target.files[0]
+                    if (file) {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                            bgImageUrl.value = e.target.result
+                        }
+                        reader.readAsDataURL(file)
+                    }
+                }
+
+                const delay = (ms) => new Promise(res => setTimeout(res, ms))
+
+                const exportImage = async () => {
+                    if (isExporting.value) return
+                    isExporting.value = true
+                    try {
+                        for (let index = 0; index < calculatedPages.value.length; index++) {
+                            const pageNumber = index + 1
+                            const element = document.getElementById('export-card-' + pageNumber)
+                            const canvas = await html2canvas(element, {
+                                scale: 2, 
+                                useCORS: true,
+                                backgroundColor: bgStyle.value === 'dots' ? '#ffffff' : (bgStyle.value === 'plain' ? '#ffffff' : null),
+                            })
+                            
+                            const link = document.createElement('a')
+                            link.download = `xhs-card-p${pageNumber}-${new Date().getTime()}.png`
+                            link.href = canvas.toDataURL('image/png')
+                            link.click()
+                            
+                            await delay(300)
+                        }
+                    } catch (error) {
+                        console.error('Export failed:', error)
+                        alert('Failed to export image. Please try again.')
+                    } finally {
+                        isExporting.value = false
+                    }
+                }
+
+                return {
+                    activeTab, title, titleFont, titleSize, titleClasses, content, contentFont, contentSize, contentClasses,
+                    images, bgImageUrl, isExporting, bgStyle, cardRatio, safeMargin, cardDimensions, calculatedPages,
+                    handleImageUpload, handleBgUpload, removeImage, exportImage
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
