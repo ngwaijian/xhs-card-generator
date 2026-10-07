@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -16,6 +16,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -43,9 +44,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <style>
         .bg-dots {
-            background-color: #ffffff;
+            background-color: transparent;
             background-image: radial-gradient(#e5e7eb 2px, transparent 2px);
             background-size: 24px 24px;
+        }
+        .dark .bg-dots {
+            background-image: radial-gradient(#374151 2px, transparent 2px);
         }
         .card-container {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -53,7 +57,6 @@
         }
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background-color: #f3f4f6;
             margin: 0;
             padding: 0;
             overflow: hidden; 
@@ -66,17 +69,31 @@
             background: #cbd5e1;
             border-radius: 4px;
         }
+        .dark .preview-scroll::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
         .paragraph-text:empty::before {
             content: "\200b"; 
         }
     </style>
 </head>
-<body>
-    <div id="app" class="h-[100dvh] w-full flex flex-col lg:flex-row bg-gray-100">
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+    <div id="app" class="h-[100dvh] w-full flex flex-col lg:flex-row">
         
+        <!-- Top Controls (Theme & Lang) -->
+        <div class="absolute top-2 right-4 lg:top-4 lg:right-6 z-[60] flex gap-2">
+            <button @click="toggleTheme" class="bg-white dark:bg-gray-800 p-2 rounded-full shadow-md text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                <svg v-if="!isDark" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            </button>
+            <button @click="toggleLang" class="bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-md text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                {{ locale === 'en' ? '中' : 'EN' }}
+            </button>
+        </div>
+
         <!-- Preview Area -->
-        <div class="order-1 lg:order-2 w-full lg:w-2/3 flex flex-col preview-scroll overflow-auto h-[45vh] lg:h-full p-4 lg:p-8 bg-gray-200 lg:bg-transparent shadow-inner lg:shadow-none z-0">
-            <div class="flex items-start gap-8 min-w-max pb-4 lg:pb-8 lg:pr-8">
+        <div class="order-1 lg:order-2 w-full lg:w-2/3 flex flex-col preview-scroll overflow-auto h-[45vh] lg:h-full p-4 lg:p-8 bg-gray-200 dark:bg-gray-900 lg:bg-transparent dark:lg:bg-transparent shadow-inner lg:shadow-none z-0">
+            <div class="flex items-start gap-8 min-w-max pb-4 lg:pb-8 lg:pr-8 mt-8 lg:mt-0">
                 <div class="transform scale-[0.4] md:scale-[0.5] lg:scale-[0.6] 2xl:scale-75 origin-top-left flex shrink-0 gap-6 lg:gap-8">
                     
                     <div 
@@ -84,7 +101,7 @@
                         :key="index"
                         :id="'export-card-' + (index + 1)"
                         class="card-container flex flex-col transition-all duration-300 relative overflow-hidden shrink-0"
-                        :class="[bgStyle === 'dots' ? 'bg-dots' : (bgStyle === 'plain' ? 'bg-white' : '')]"
+                        :class="[bgStyle === 'dots' ? 'bg-dots bg-white dark:bg-gray-800' : (bgStyle === 'plain' ? 'bg-white dark:bg-gray-800' : 'bg-white dark:bg-gray-800')]"
                         :style="{ width: cardDimensions.width, height: cardDimensions.height }"
                     >
                         <div v-if="bgStyle === 'image' && bgImageUrl" 
@@ -92,10 +109,10 @@
                              :style="{ backgroundImage: `url(${bgImageUrl})` }">
                         </div>
 
-                        <div class="relative w-full h-full z-10 flex flex-col" :style="{ padding: safeMargin + 'px' }">
+                        <div class="relative w-full h-full z-10 flex flex-col dark:text-gray-100" :style="{ padding: safeMargin + 'px' }">
                             <div 
                                 v-if="page.title" 
-                                class="leading-snug whitespace-pre-wrap drop-shadow-sm tracking-wide mb-6 shrink-0"
+                                class="leading-snug whitespace-pre-wrap drop-shadow-sm tracking-wide mb-6 shrink-0 text-gray-900 dark:text-white"
                                 style="word-break: break-word;"
                                 :class="titleClasses"
                                 :style="{ fontFamily: titleFont }"
@@ -105,7 +122,7 @@
                                 <template v-for="(block, i) in page.elements" :key="i">
                                     <div 
                                         v-if="block.type === 'text'"
-                                        class="leading-relaxed whitespace-pre-wrap drop-shadow-sm paragraph-text shrink-0"
+                                        class="leading-relaxed whitespace-pre-wrap drop-shadow-sm paragraph-text shrink-0 text-gray-800 dark:text-gray-200"
                                         style="word-break: break-word;"
                                         :class="contentClasses"
                                         :style="{ fontFamily: contentFont }"
@@ -130,21 +147,21 @@
         </div>
 
         <!-- Editor Panel -->
-        <div class="order-2 lg:order-1 w-full lg:w-1/3 bg-white p-4 lg:p-6 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] lg:shadow-xl flex flex-col flex-grow lg:h-full z-10 overflow-hidden">
-            <h1 class="text-xl font-bold mb-3 text-gray-800 hidden lg:block">Card Editor</h1>
+        <div class="order-2 lg:order-1 w-full lg:w-1/3 bg-white dark:bg-gray-800 p-4 lg:p-6 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] dark:shadow-none lg:border-r border-gray-200 dark:border-gray-700 flex flex-col flex-grow lg:h-full z-10 overflow-hidden transition-colors duration-300">
+            <h1 class="text-xl font-bold mb-3 text-gray-800 dark:text-white hidden lg:block">{{ t('appTitle') }}</h1>
             
             <!-- Tabs -->
-            <div class="flex gap-4 mb-3 border-b border-gray-200 shrink-0">
+            <div class="flex gap-4 mb-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
                 <button 
                     @click="activeTab = 'text'" 
                     class="pb-2 text-sm font-bold border-b-2 transition-colors flex-1 lg:flex-none text-center lg:text-left" 
-                    :class="activeTab === 'text' ? 'border-xhs-500 text-xhs-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                >1. Edit Text</button>
+                    :class="activeTab === 'text' ? 'border-xhs-500 text-xhs-500' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'"
+                >{{ t('tabText') }}</button>
                 <button 
                     @click="activeTab = 'design'" 
                     class="pb-2 text-sm font-bold border-b-2 transition-colors flex-1 lg:flex-none text-center lg:text-left" 
-                    :class="activeTab === 'design' ? 'border-xhs-500 text-xhs-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                >2. Layout & Style</button>
+                    :class="activeTab === 'design' ? 'border-xhs-500 text-xhs-500' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'"
+                >{{ t('tabDesign') }}</button>
             </div>
 
             <!-- Tab Content Area -->
@@ -153,58 +170,57 @@
                 <!-- TEXT TAB -->
                 <div v-show="activeTab === 'text'" class="flex flex-col gap-4">
                     <div>
-                        <label class="text-sm font-bold text-gray-800 mb-1 block">Title</label>
+                        <label class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1 block">{{ t('titleLabel') }}</label>
                         <div class="flex gap-2 mb-2">
-                            <select v-model="titleFont" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500">
-                                <option value="'Noto Sans SC', sans-serif">Modern (Sans)</option>
-                                <option value="'Noto Serif SC', serif">Classic (Serif)</option>
-                                <option value="'ZCOOL KuaiLe', cursive">Playful</option>
-                                <option value="'Ma Shan Zheng', cursive">Handwriting</option>
+                            <select v-model="titleFont" class="w-1/2 p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs border border-gray-300 dark:border-gray-600 rounded outline-none focus:ring-1 focus:ring-xhs-500">
+                                <option value="'Noto Sans SC', sans-serif">{{ t('fontModern') }}</option>
+                                <option value="'Noto Serif SC', serif">{{ t('fontClassic') }}</option>
+                                <option value="'ZCOOL KuaiLe', cursive">{{ t('fontPlayful') }}</option>
+                                <option value="'Ma Shan Zheng', cursive">{{ t('fontHandwriting') }}</option>
                             </select>
-                            <select v-model="titleSize" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500">
-                                <option value="h1">Heading 1</option>
-                                <option value="h2">Heading 2</option>
-                                <option value="h3">Heading 3</option>
+                            <select v-model="titleSize" class="w-1/2 p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs border border-gray-300 dark:border-gray-600 rounded outline-none focus:ring-1 focus:ring-xhs-500">
+                                <option value="h1">{{ t('sizeHuge') }}</option>
+                                <option value="h2">{{ t('sizeLarge') }}</option>
+                                <option value="h3">{{ t('sizeMed') }}</option>
                             </select>
                         </div>
                         <textarea 
                             v-model="title" 
-                            class="w-full h-16 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-xhs-500 outline-none resize-none"
-                            placeholder="Enter title here..."
+                            class="w-full h-16 p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-xhs-500 outline-none resize-none"
+                            :placeholder="t('titlePlaceholder')"
                         ></textarea>
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="text-sm font-bold text-gray-800">Caption / Content</label>
-                            <span class="text-[9px] lg:text-[10px] text-xhs-600 font-bold bg-xhs-50 px-1.5 py-0.5 rounded">Type [image1] to place!</span>
+                            <label class="text-sm font-bold text-gray-800 dark:text-gray-200">{{ t('contentLabel') }}</label>
+                            <span class="text-[9px] lg:text-[10px] text-xhs-600 dark:text-xhs-400 font-bold bg-xhs-50 dark:bg-xhs-900/30 px-1.5 py-0.5 rounded border border-xhs-100 dark:border-xhs-800/50">{{ t('contentHint') }}</span>
                         </div>
                         <div class="flex gap-2 mb-2">
-                            <select v-model="contentFont" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500">
-                                <option value="'Noto Sans SC', sans-serif">Modern (Sans)</option>
-                                <option value="'Noto Serif SC', serif">Classic (Serif)</option>
-                                <option value="'ZCOOL KuaiLe', cursive">Playful</option>
-                                <option value="'Ma Shan Zheng', cursive">Handwriting</option>
+                            <select v-model="contentFont" class="w-1/2 p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs border border-gray-300 dark:border-gray-600 rounded outline-none focus:ring-1 focus:ring-xhs-500">
+                                <option value="'Noto Sans SC', sans-serif">{{ t('fontModern') }}</option>
+                                <option value="'Noto Serif SC', serif">{{ t('fontClassic') }}</option>
+                                <option value="'ZCOOL KuaiLe', cursive">{{ t('fontPlayful') }}</option>
+                                <option value="'Ma Shan Zheng', cursive">{{ t('fontHandwriting') }}</option>
                             </select>
-                            <select v-model="contentSize" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500">
-                                <option value="lg">Large</option>
-                                <option value="base">Normal</option>
-                                <option value="sm">Small</option>
+                            <select v-model="contentSize" class="w-1/2 p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs border border-gray-300 dark:border-gray-600 rounded outline-none focus:ring-1 focus:ring-xhs-500">
+                                <option value="lg">{{ t('sizeContentLg') }}</option>
+                                <option value="base">{{ t('sizeContentBase') }}</option>
+                                <option value="sm">{{ t('sizeContentSm') }}</option>
                             </select>
                         </div>
                         <textarea 
                             v-model="content" 
-                            class="w-full h-32 lg:h-48 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-xhs-500 outline-none resize-none"
-                            placeholder="Type your content here..."
+                            class="w-full h-32 lg:h-48 p-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-xhs-500 outline-none resize-none"
+                            :placeholder="t('contentPlaceholder')"
                         ></textarea>
                         
-                        <!-- Anti-Shadowban Scanner Button -->
                         <button 
                             @click="scanSensitiveWords" 
-                            class="mt-3 w-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-2 px-4 rounded-lg border border-orange-200 transition-colors flex justify-center items-center gap-2 text-sm shadow-sm"
+                            class="mt-3 w-full bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/40 text-orange-700 dark:text-orange-400 font-bold py-2 px-4 rounded-lg border border-orange-200 dark:border-orange-800 transition-colors flex justify-center items-center gap-2 text-sm shadow-sm"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                            Check for XHS Sensitive Words
+                            {{ t('checkBtn') }}
                         </button>
                     </div>
                 </div>
@@ -212,45 +228,45 @@
                 <!-- DESIGN TAB -->
                 <div v-show="activeTab === 'design'" class="flex flex-col gap-5">
                     <div>
-                        <label class="block text-sm font-bold text-gray-800 mb-1">Card Aspect Ratio</label>
-                        <select v-model="cardRatio" class="w-full p-2 bg-gray-50 border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500 text-sm">
-                            <option value="3:4">Standard Vertical (3:4)</option>
-                            <option value="9:16">Full Phone Vertical (9:16)</option>
-                            <option value="1:1">Square (1:1)</option>
-                            <option value="4:3">Standard Horizontal (4:3)</option>
-                            <option value="16:9">Wide Horizontal (16:9)</option>
+                        <label class="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{{ t('ratioLabel') }}</label>
+                        <select v-model="cardRatio" class="w-full p-2 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded outline-none focus:ring-1 focus:ring-xhs-500 text-sm">
+                            <option value="3:4">3:4</option>
+                            <option value="9:16">9:16</option>
+                            <option value="1:1">1:1</option>
+                            <option value="4:3">4:3</option>
+                            <option value="16:9">16:9</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-800 mb-1">Upload Multiple Photos</label>
+                        <label class="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{{ t('uploadLabel') }}</label>
                         <input 
                             type="file" 
                             multiple
                             @change="handleImageUpload" 
                             accept="image/*"
-                            class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-xhs-50 file:text-xhs-700 hover:file:bg-xhs-100"
+                            class="block w-full text-xs text-gray-500 dark:text-gray-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-xhs-50 dark:file:bg-xhs-900/30 file:text-xhs-700 dark:file:text-xhs-400 hover:file:bg-xhs-100 dark:hover:file:bg-xhs-900/50"
                         >
-                        <div v-if="images.length > 0" class="mt-2 flex flex-wrap gap-2 p-2 bg-gray-50 rounded border border-gray-200">
+                        <div v-if="images.length > 0" class="mt-2 flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
                             <div v-for="(img, idx) in images" :key="idx" class="relative inline-block text-center group">
-                                <img :src="img" class="h-12 w-12 object-cover rounded border border-gray-300 shadow-sm" />
-                                <span class="block text-[9px] font-bold text-xhs-600 mt-1 select-all">[image{{ idx + 1 }}]</span>
+                                <img :src="img" class="h-12 w-12 object-cover rounded border border-gray-300 dark:border-gray-500 shadow-sm" />
+                                <span class="block text-[9px] font-bold text-xhs-600 dark:text-xhs-400 mt-1 select-all">[image{{ idx + 1 }}]</span>
                                 <button @click="removeImage(idx)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-red-600 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">×</button>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-800 mb-1">Card Background</label>
-                        <div class="flex flex-wrap gap-3 mb-2 text-sm">
+                        <label class="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{{ t('bgLabel') }}</label>
+                        <div class="flex flex-wrap gap-3 mb-2 text-sm text-gray-700 dark:text-gray-300">
                             <label class="flex items-center cursor-pointer">
-                                <input type="radio" v-model="bgStyle" value="dots" class="mr-1"> Dots
+                                <input type="radio" v-model="bgStyle" value="dots" class="mr-1 accent-xhs-500"> {{ t('bgDots') }}
                             </label>
                             <label class="flex items-center cursor-pointer">
-                                <input type="radio" v-model="bgStyle" value="plain" class="mr-1"> Plain White
+                                <input type="radio" v-model="bgStyle" value="plain" class="mr-1 accent-xhs-500"> {{ t('bgPlain') }}
                             </label>
                             <label class="flex items-center cursor-pointer">
-                                <input type="radio" v-model="bgStyle" value="image" class="mr-1"> Custom
+                                <input type="radio" v-model="bgStyle" value="image" class="mr-1 accent-xhs-500"> {{ t('bgCustom') }}
                             </label>
                         </div>
                         
@@ -259,16 +275,16 @@
                                 type="file" 
                                 @change="handleBgUpload" 
                                 accept="image/*"
-                                class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                                class="block w-full text-xs text-gray-500 dark:text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
                             >
                         </div>
                     </div>
 
-                    <div class="pt-3 border-t border-gray-100">
-                        <label class="block text-sm font-bold text-gray-800 mb-1">Advanced: Safe Margin</label>
+                    <div class="pt-3 border-t border-gray-100 dark:border-gray-700">
+                        <label class="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">{{ t('safeMargin') }}</label>
                         <div class="flex items-center gap-3">
-                            <input type="range" v-model="safeMargin" min="16" max="120" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                            <span class="text-xs font-medium text-gray-600 min-w-[32px]">{{ safeMargin }}px</span>
+                            <input type="range" v-model="safeMargin" min="16" max="120" class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-xhs-500">
+                            <span class="text-xs font-medium text-gray-600 dark:text-gray-400 min-w-[32px]">{{ safeMargin }}px</span>
                         </div>
                     </div>
                 </div>
@@ -276,14 +292,14 @@
             </div>
 
             <!-- Export Button -->
-            <div class="mt-2 pt-3 border-t border-gray-200 shrink-0">
+            <div class="mt-2 pt-3 border-t border-gray-200 dark:border-gray-700 shrink-0">
                 <button 
                     @click="exportImage" 
-                    class="w-full bg-xhs-600 hover:bg-xhs-700 active:bg-xhs-800 text-white font-bold py-3 px-4 rounded-xl transition-colors flex justify-center items-center gap-2 text-sm lg:text-base shadow-sm"
+                    class="w-full bg-xhs-500 hover:bg-xhs-600 active:bg-xhs-700 text-white font-bold py-3 px-4 rounded-xl transition-colors flex justify-center items-center gap-2 text-sm lg:text-base shadow-sm"
                     :disabled="isExporting"
                 >
-                    <span v-if="isExporting">Exporting...</span>
-                    <span v-else>Export {{ calculatedPages.length }} Pages</span>
+                    <span v-if="isExporting">{{ t('exporting') }}</span>
+                    <span v-else>{{ t('exportBtn').replace('{n}', calculatedPages.length) }}</span>
                 </button>
             </div>
         </div>
@@ -291,42 +307,56 @@
     </div>
 
     <!-- Sensitive Words Modal -->
-    <div v-if="showScanModal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+    <div v-if="showScanModal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] flex items-center justify-center p-4" @click.self="showScanModal = false">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
+                <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                    XHS Risk Check
+                    {{ t('scanTitle') }}
                 </h2>
-                <button @click="showScanModal = false" class="text-gray-500 hover:text-gray-700 font-bold text-2xl leading-none">&times;</button>
+                <button @click="showScanModal = false" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-bold text-2xl leading-none">&times;</button>
             </div>
             
             <div class="p-6 overflow-y-auto">
-                <div v-if="scanResults.length === 0" class="text-center py-8">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <p class="text-xl font-bold text-gray-800">Looking Safe!</p>
-                    <p class="text-sm text-gray-500 mt-2">No known restricted or sensitive words were detected in your text. You're good to post!</p>
-                </div>
                 
-                <div v-else class="flex flex-col gap-4">
-                    <p class="text-sm text-gray-600 mb-2">We found <b>{{ scanResults.length }}</b> potential risk word(s) that frequently cause XHS shadowbans or traffic limits.</p>
-                    
-                    <div v-for="(result, index) in scanResults" :key="index" class="bg-red-50 border border-red-100 p-3 rounded-lg flex items-start gap-3">
-                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded whitespace-nowrap">{{ result.word }}</span>
-                        <div>
-                            <p class="text-xs font-bold text-red-800 mb-1">{{ result.category }}</p>
-                            <p class="text-[11px] text-red-600 line-clamp-2">"...{{ result.context }}..."</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">{{ t('scanIssuesFound') }}</p>
+
+                <div class="flex flex-col gap-4">
+                    <div v-for="(report, idx) in scanReport" :key="idx" class="border rounded-lg overflow-hidden" :class="report.issues.length === 0 ? 'border-green-200 dark:border-green-900/50' : 'border-red-200 dark:border-red-900/50'">
+                        
+                        <!-- Category Header -->
+                        <div class="p-3 flex justify-between items-center" :class="report.issues.length === 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'">
+                            <span class="font-bold text-sm" :class="report.issues.length === 0 ? 'text-green-800 dark:text-green-400' : 'text-red-800 dark:text-red-400'">
+                                {{ report.name }}
+                            </span>
+                            <span class="text-xs font-bold px-2 py-1 rounded" :class="report.issues.length === 0 ? 'bg-green-100 dark:bg-green-800/50 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-800/50 text-red-700 dark:text-red-300'">
+                                {{ report.issues.length === 0 ? t('scanPassed') : t('scanFailed') + ' (' + report.issues.length + ')' }}
+                            </span>
                         </div>
-                    </div>
-                    
-                    <div class="mt-2 p-3 bg-xhs-50 text-xhs-800 text-xs rounded border border-xhs-100">
-                        <b>💡 XHS Tip:</b> XHS algorithms suppress social/political news (like police, guards, protests) to maintain a "positive lifestyle community". It also strictly bans advertising absolutes and redirect links. Use emojis (e.g. 👮‍♂️) or Pinyin initials to discuss these safely.
+                        
+                        <!-- Explanations & Results -->
+                        <div class="p-3 bg-white dark:bg-gray-800 text-xs">
+                            <div class="mb-3 text-gray-600 dark:text-gray-400">
+                                <p><b class="text-gray-800 dark:text-gray-200">{{ t('reasonLabel') }}</b> {{ report.why }}</p>
+                                <p class="mt-1"><b class="text-gray-800 dark:text-gray-200">{{ t('suggestLabel') }}</b> {{ report.fix }}</p>
+                            </div>
+                            
+                            <!-- Issue List -->
+                            <div v-if="report.issues.length > 0" class="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-700 pt-3">
+                                <div v-for="(issue, i) in report.issues" :key="i" class="flex items-start gap-2">
+                                    <span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">{{ issue.word }}</span>
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400 italic">"...{{ issue.context }}..."</p>
+                                </div>
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
+
             </div>
             
-            <div class="p-4 border-t border-gray-200 bg-gray-50 text-right">
-                <button @click="showScanModal = false" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors shadow">Close</button>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-right">
+                <button @click="showScanModal = false" class="bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors shadow">{{ t('closeBtn') }}</button>
             </div>
         </div>
     </div>
@@ -340,13 +370,69 @@
 
         const { createApp, ref, computed, watch, nextTick, onMounted } = Vue
 
+        const translations = {
+            en: {
+                appTitle: 'Card Editor', tabText: '1. Edit Text', tabDesign: '2. Layout & Style',
+                titleLabel: 'Title', titlePlaceholder: 'Enter title here...',
+                contentLabel: 'Caption / Content', contentHint: 'Type [image1] to place photos!', contentPlaceholder: 'Type your content here...',
+                checkBtn: 'Check for XHS Sensitive Words', ratioLabel: 'Card Aspect Ratio', uploadLabel: 'Upload Multiple Photos',
+                bgLabel: 'Card Background', bgDots: 'Dots', bgPlain: 'Plain White', bgCustom: 'Custom Image',
+                safeMargin: 'Advanced: Safe Margin', exportBtn: 'Export {n} Pages', exporting: 'Exporting...',
+                fontModern: 'Modern (Sans)', fontClassic: 'Classic (Serif)', fontPlayful: 'Playful', fontHandwriting: 'Handwriting',
+                sizeHuge: 'Heading 1', sizeLarge: 'Heading 2', sizeMed: 'Heading 3',
+                sizeContentLg: 'Large', sizeContentBase: 'Normal', sizeContentSm: 'Small',
+                scanTitle: 'XHS Risk Check', scanPassed: 'Safe', scanFailed: 'Issues Found',
+                scanIssuesFound: 'We checked your text against 4 strict XHS categories. Review the results below:',
+                reasonLabel: 'Why:', suggestLabel: 'Fix:', closeBtn: 'Close',
+                catAd: 'Ad Law Absolutes', catAdWhy: 'Violates China advertising laws; triggers automatic bot filters.', catAdFix: 'Use softer descriptive words (e.g., "works well", "personally love it").',
+                catMkt: 'Marketing & Redirection', catMktWhy: 'XHS strictly bans moving traffic off their platform to WeChat, Taobao, etc.', catMktFix: 'Use homophones (e.g., "某宝"), emojis (🛒), or ask users to DM instead.',
+                catMed: 'Medical & Superstition', catMedWhy: 'Requires verified medical qualification; otherwise flagged as false advertising.', catMedFix: 'Describe personal feelings instead of claiming medical "cures".',
+                catPol: 'Social & Political Risks', catPolWhy: 'XHS algorithms suppress negative social news to maintain a positive community.', catPolFix: 'Avoid discussing authorities. Use emojis (👮) or Pinyin (jc) if necessary for a story.'
+            },
+            zh: {
+                appTitle: '卡片编辑器', tabText: '1. 编辑图文', tabDesign: '2. 布局与样式',
+                titleLabel: '标题', titlePlaceholder: '在此输入标题...',
+                contentLabel: '正文', contentHint: '输入 [image1] 插入图片！', contentPlaceholder: '在此输入正文...',
+                checkBtn: '小红书敏感词检测', ratioLabel: '卡片比例', uploadLabel: '上传多张图片',
+                bgLabel: '卡片背景', bgDots: '波点', bgPlain: '纯白', bgCustom: '自定义',
+                safeMargin: '高级：安全边距', exportBtn: '导出 {n} 张卡片', exporting: '导出中...',
+                fontModern: '现代 (无衬线)', fontClassic: '经典 (衬线)', fontPlayful: '活泼', fontHandwriting: '手写',
+                sizeHuge: '大标题 1', sizeLarge: '大标题 2', sizeMed: '大标题 3',
+                sizeContentLg: '大', sizeContentBase: '中', sizeContentSm: '小',
+                scanTitle: '小红书违禁词体检', scanPassed: '安全', scanFailed: '发现风险',
+                scanIssuesFound: '我们为您检测了4大小红书违规雷区，请参考以下报告进行修改：',
+                reasonLabel: '原因：', suggestLabel: '建议：', closeBtn: '关闭',
+                catAd: '广告法绝对化用语', catAdWhy: '违反新广告法，极易触发机器审核拦截和限流。', catAdFix: '使用客观描述替代（如将“最好用”改为“亲测好用”）。',
+                catMkt: '引流与过度营销', catMktWhy: '小红书严打向微信、淘宝等站外平台导流的行为。', catMktFix: '使用谐音字（如“某宝”）、Emoji（🛒），或引导用户看评论区。',
+                catMed: '医疗与封建迷信', catMedWhy: '非医疗专业资质禁止发布功效承诺，封建迷信易被封号。', catMedFix: '分享个人真实感受，切勿使用“治愈”、“包治”等确切词汇。',
+                catPol: '社会新闻与风控', catPolWhy: '平台崇尚“美好生活”，负面社会新闻与群体冲突极易被限流屏蔽。', catPolFix: '尽量避免涉政或公职人员话题，必须提及可使用拼音缩写（如 jc）或Emoji（👮）。'
+            }
+        }
+
         createApp({
             setup() {
+                const locale = ref('en')
+                const isDark = ref(false)
+                
+                const t = (key) => {
+                    return translations[locale.value][key] || key
+                }
+                
+                const toggleTheme = () => {
+                    isDark.value = !isDark.value
+                    if (isDark.value) document.documentElement.classList.add('dark')
+                    else document.documentElement.classList.remove('dark')
+                }
+                
+                const toggleLang = () => {
+                    locale.value = locale.value === 'en' ? 'zh' : 'en'
+                }
+
                 const activeTab = ref('text')
-                const title = ref('带爸妈飞有多慌？\n最怕Landing砸锅')
+                const title = ref('')
                 const titleFont = ref("'Noto Sans SC', sans-serif")
                 const titleSize = ref('h1')
-                const content = ref('太紧张了，准备了稿，也读错几个字，还好听不清？\n🤣\n\n[image1]\n\n就这样，谢谢当天的Capt和组员的招待和帮助，谢谢天气不错，过程也okay。路上甚至遇到警察和城管，虚惊一场。虽然差一点medical emergency。\n\n[image2]\n\n还好全部都还算顺利，完美落地！绝对是全网首发的最棒旅游攻略，记得加我微信私信领详细路线哦！')
+                const content = ref('')
                 const contentFont = ref("'Noto Sans SC', sans-serif")
                 const contentSize = ref('base')
                 const images = ref([]) 
@@ -358,33 +444,19 @@
                 const calculatedPages = ref([])
                 
                 const showScanModal = ref(false)
-                const scanResults = ref([])
+                const scanReport = ref([])
                 
                 const scanSensitiveWords = () => {
-                    scanResults.value = []
-                    
-                    const sensitiveCategories = [
-                        {
-                            name: '广告违禁词 (Ad Law Absolutes)',
-                            words: ['最佳', '最具', '最爱', '第一', '首选', '顶级', '极致', '极品', '独一无二', '万能', '全网首发', '史无前例', '永久', '无敌', '最好用', '最便宜', '销量冠军', '绝对']
-                        },
-                        {
-                            name: '引流与营销词 (Marketing & Redirection)',
-                            words: ['下单', '购买', '淘宝', '天猫', '京东', '拼多多', '秒杀', '免费领取', '返利', '微信', '微信号', '手机号', 'QQ', '二维码', '加我', '私信领', '私信我', '链接', '代购', '赚钱', '求关注']
-                        },
-                        {
-                            name: '医疗迷信词 (Medical & Superstition)',
-                            words: ['治疗', '治愈', '药方', '根治', '消炎', '抗炎', '消斑', '排毒', '增强免疫力', '调节内分泌', '算命', '化解小人', '转运', '招财进宝', '逢考必过']
-                        },
-                        {
-                            name: '社会与政治风控 (Social/Political & Censorship Risks)',
-                            words: ['警察', '城管', '保安', '维稳', '查水表', '暴乱', '游行', '集会', '维权', '报警', '国家级', '特供', '政府', '体制内', '贪污', '黑幕', '翻墙', '删帖', '封号']
-                        }
-                    ]
-
                     const fullText = (title.value + ' ' + content.value)
                     
-                    sensitiveCategories.forEach(category => {
+                    const report = [
+                        { id: 'catAd', name: t('catAd'), why: t('catAdWhy'), fix: t('catAdFix'), words: ['最佳', '最具', '最爱', '第一', '首选', '顶级', '极致', '极品', '独一无二', '万能', '全网首发', '史无前例', '永久', '无敌', '最好用', '最便宜', '销量冠军', '绝对'], issues: [] },
+                        { id: 'catMkt', name: t('catMkt'), why: t('catMktWhy'), fix: t('catMktFix'), words: ['下单', '购买', '淘宝', '天猫', '京东', '拼多多', '秒杀', '免费领取', '返利', '微信', '微信号', '手机号', 'QQ', '二维码', '加我', '私信领', '私信我', '链接', '代购', '赚钱', '求关注'], issues: [] },
+                        { id: 'catMed', name: t('catMed'), why: t('catMedWhy'), fix: t('catMedFix'), words: ['治疗', '治愈', '药方', '根治', '消炎', '抗炎', '消斑', '排毒', '增强免疫力', '调节内分泌', '算命', '化解小人', '转运', '招财进宝', '逢考必过'], issues: [] },
+                        { id: 'catPol', name: t('catPol'), why: t('catPolWhy'), fix: t('catPolFix'), words: ['警察', '城管', '保安', '维稳', '查水表', '暴乱', '游行', '集会', '维权', '报警', '国家级', '特供', '政府', '体制内', '贪污', '黑幕', '翻墙', '删帖', '封号'], issues: [] }
+                    ]
+                    
+                    report.forEach(category => {
                         category.words.forEach(word => {
                             const regex = new RegExp(word, 'gi')
                             let match;
@@ -393,10 +465,9 @@
                                 const end = Math.min(fullText.length, match.index + word.length + 12)
                                 const context = fullText.substring(start, end).replace(/\n/g, ' ')
                                 
-                                if (!scanResults.value.some(r => r.word === word)) {
-                                    scanResults.value.push({
+                                if (!category.issues.some(r => r.word === word)) {
+                                    category.issues.push({
                                         word: word,
-                                        category: category.name,
                                         context: context
                                     })
                                 }
@@ -404,6 +475,7 @@
                         })
                     })
                     
+                    scanReport.value = report
                     showScanModal.value = true
                 }
 
@@ -603,7 +675,7 @@
                             const canvas = await html2canvas(element, {
                                 scale: 2, 
                                 useCORS: true,
-                                backgroundColor: bgStyle.value === 'dots' ? '#ffffff' : (bgStyle.value === 'plain' ? '#ffffff' : null),
+                                backgroundColor: bgStyle.value === 'dots' ? (document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff') : (bgStyle.value === 'plain' ? (document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff') : null),
                             })
                             
                             const link = document.createElement('a')
@@ -622,10 +694,11 @@
                 }
 
                 return {
+                    locale, isDark, t, toggleTheme, toggleLang,
                     activeTab, title, titleFont, titleSize, titleClasses, content, contentFont, contentSize, contentClasses,
                     images, bgImageUrl, isExporting, bgStyle, cardRatio, safeMargin, cardDimensions, calculatedPages,
                     handleImageUpload, handleBgUpload, removeImage, exportImage,
-                    showScanModal, scanResults, scanSensitiveWords
+                    showScanModal, scanReport, scanSensitiveWords
                 }
             }
         }).mount('#app')
