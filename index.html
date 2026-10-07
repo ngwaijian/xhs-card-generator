@@ -84,10 +84,10 @@
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
-    <div id="app" class="h-[100dvh] w-full flex flex-col lg:flex-row">
+    <div id="app" class="h-[100dvh] w-full flex flex-col lg:flex-row pt-[max(env(safe-area-inset-top),12px)] pb-[max(env(safe-area-inset-bottom),12px)]">
         
         <!-- Top Controls (Theme & Lang) -->
-        <div class="absolute top-2 right-4 lg:top-4 lg:right-6 z-[60] flex gap-2">
+        <div class="absolute right-4 lg:right-6 z-[60] flex gap-2" style="top: max(env(safe-area-inset-top), 12px);">
             <button @click="toggleTheme" class="bg-white dark:bg-gray-800 p-2 rounded-full shadow-md text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                 <svg v-if="!isDark" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
@@ -99,7 +99,7 @@
 
         <!-- Preview Area -->
         <div class="order-1 lg:order-2 w-full lg:w-2/3 flex flex-col preview-scroll overflow-auto h-[45vh] lg:h-full p-4 lg:p-8 bg-gray-200 dark:bg-gray-900 lg:bg-transparent dark:lg:bg-transparent shadow-inner lg:shadow-none z-0 relative">
-            <button @click="mobileZoom = !mobileZoom" class="lg:hidden sticky top-0 left-0 z-[60] bg-white/90 backdrop-blur dark:bg-gray-800/90 px-3 py-1.5 rounded-full shadow-md text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-1 w-fit mb-4">
+            <button @click="mobileZoom = !mobileZoom" class="lg:hidden sticky left-0 z-[60] bg-white/90 backdrop-blur dark:bg-gray-800/90 px-3 py-1.5 rounded-full shadow-md text-xs font-bold text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-1 w-fit mb-4">
                 {{ !mobileZoom ? t('zoomIn') : t('zoomOut') }}
             </button>
             <div class="flex items-start gap-8 min-w-max pb-4 lg:pb-8 lg:pr-8 mt-8 lg:mt-0">
@@ -156,7 +156,13 @@
         </div>
 
         <!-- Editor Panel -->
-        <div class="order-2 lg:order-1 w-full lg:w-1/3 bg-white dark:bg-gray-800 p-4 lg:p-6 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] dark:shadow-none lg:border-r border-gray-200 dark:border-gray-700 flex flex-col flex-grow lg:h-full z-10 overflow-hidden transition-colors duration-300">
+        <div class="order-2 lg:order-1 w-full lg:w-1/3 bg-white dark:bg-gray-800 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] dark:shadow-none lg:border-r border-gray-200 dark:border-gray-700 flex flex-col flex-grow lg:h-full z-10 overflow-hidden transition-all duration-300" :class="showEditor ? 'h-[50vh] lg:h-full p-4 lg:p-6' : 'h-[52px] lg:h-full lg:p-6 shrink-0'">
+            <!-- Mobile Collapse Toggle -->
+            <button @click="showEditor = !showEditor" class="lg:hidden w-full flex items-center justify-center p-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800 shrink-0">
+                <span class="font-bold text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    {{ showEditor ? t('hideEditor') : t('showEditor') }}
+                </span>
+            </button>
             <h1 class="text-xl font-bold mb-3 text-gray-800 dark:text-white hidden lg:block">{{ t('appTitle') }}</h1>
             
             <!-- Tabs -->
@@ -373,7 +379,7 @@
             en: {
                 appTitle: 'Card Editor', tabText: '1. Edit Text', tabDesign: '2. Layout & Style',
                 titleLabel: 'Title', titlePlaceholder: 'Enter title here...',
-                zoomIn: '🔍 Zoom In', zoomOut: '🗗 Fit Screen',
+                zoomIn: '🔍 Zoom In', zoomOut: '🗗 Fit Screen', hideEditor: '🔽 Hide Editor', showEditor: '🔼 Show Editor',
                 zoomIn: '🔍 Zoom In', zoomOut: '🗗 Fit Screen',
                 contentLabel: 'Caption / Content', contentHint: 'Type [image1] to place photos!', contentPlaceholder: 'Type your content here...',
                 checkBtn: 'Check for XHS Sensitive Words', ratioLabel: 'Card Aspect Ratio', uploadLabel: 'Upload Multiple Photos',
@@ -393,7 +399,7 @@
             zh: {
                 appTitle: '卡片编辑器', tabText: '1. 编辑图文', tabDesign: '2. 布局与样式',
                 titleLabel: '标题', titlePlaceholder: '在此输入标题...',
-                zoomIn: '🔍 放大查看', zoomOut: '🗗 适应屏幕',
+                zoomIn: '🔍 放大查看', zoomOut: '🗗 适应屏幕', hideEditor: '🔽 隐藏编辑器', showEditor: '🔼 展开编辑器',
                 zoomIn: '🔍 放大查看', zoomOut: '🗗 适应屏幕',
                 contentLabel: '正文', contentHint: '输入 [image1] 插入图片！', contentPlaceholder: '在此输入正文...',
                 checkBtn: '小红书敏感词检测', ratioLabel: '卡片比例', uploadLabel: '上传多张图片',
