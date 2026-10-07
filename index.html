@@ -34,7 +34,7 @@
             background-color: #f3f4f6;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Prevent body scroll, handle inside app */
+            overflow: hidden; 
         }
         .preview-scroll::-webkit-scrollbar {
             height: 8px;
@@ -52,13 +52,11 @@
 <body>
     <div id="app" class="h-[100dvh] w-full flex flex-col lg:flex-row bg-gray-100">
         
-        <!-- Preview Area (Order 1 Mobile / Order 2 Desktop) -->
+        <!-- Preview Area -->
         <div class="order-1 lg:order-2 w-full lg:w-2/3 flex flex-col preview-scroll overflow-auto h-[45vh] lg:h-full p-4 lg:p-8 bg-gray-200 lg:bg-transparent shadow-inner lg:shadow-none z-0">
             <div class="flex items-start gap-8 min-w-max pb-4 lg:pb-8 lg:pr-8">
-                <!-- Mobile scales to 40%, iPad/Desktop to 60% -->
                 <div class="transform scale-[0.4] md:scale-[0.5] lg:scale-[0.6] 2xl:scale-75 origin-top-left flex shrink-0 gap-6 lg:gap-8">
                     
-                    <!-- Generated Page Cards -->
                     <div 
                         v-for="(page, index) in calculatedPages"
                         :key="index"
@@ -67,13 +65,11 @@
                         :class="[bgStyle === 'dots' ? 'bg-dots' : (bgStyle === 'plain' ? 'bg-white' : '')]"
                         :style="{ width: cardDimensions.width, height: cardDimensions.height }"
                     >
-                        <!-- Background -->
                         <div v-if="bgStyle === 'image' && bgImageUrl" 
                              class="absolute inset-0 z-0 opacity-30 bg-cover bg-center"
                              :style="{ backgroundImage: `url(${bgImageUrl})` }">
                         </div>
 
-                        <!-- Inner Wrapper -->
                         <div class="relative w-full h-full z-10 flex flex-col" :style="{ padding: safeMargin + 'px' }">
                             <div 
                                 v-if="page.title" 
@@ -104,7 +100,6 @@
                 </div>
             </div>
             
-            <!-- Hidden Measurer -->
             <div class="fixed top-0 left-0 opacity-0 pointer-events-none" style="z-index: -9999; visibility: hidden;">
                 <div :style="{ width: cardDimensions.width }" class="relative">
                     <div id="measure-container" class="relative w-full flex flex-col" :style="{ padding: safeMargin + 'px' }"></div>
@@ -112,8 +107,8 @@
             </div>
         </div>
 
-        <!-- Editor Panel (Order 2 Mobile / Order 1 Desktop) -->
-        <div class="order-2 lg:order-1 w-full lg:w-1/3 bg-white p-4 lg:p-6 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] lg:shadow-xl flex flex-col flex-grow lg:h-full z-10">
+        <!-- Editor Panel -->
+        <div class="order-2 lg:order-1 w-full lg:w-1/3 bg-white p-4 lg:p-6 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] lg:shadow-xl flex flex-col flex-grow lg:h-full z-10 overflow-hidden">
             <h1 class="text-xl font-bold mb-3 text-gray-800 hidden lg:block">Card Editor</h1>
             
             <!-- Tabs -->
@@ -180,6 +175,15 @@
                             class="w-full h-32 lg:h-48 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                             placeholder="Type your content here..."
                         ></textarea>
+                        
+                        <!-- Anti-Shadowban Scanner Button -->
+                        <button 
+                            @click="scanSensitiveWords" 
+                            class="mt-3 w-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-2 px-4 rounded-lg border border-orange-200 transition-colors flex justify-center items-center gap-2 text-sm shadow-sm"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            Check for XHS Sensitive Words
+                        </button>
                     </div>
                 </div>
 
@@ -264,8 +268,48 @@
         
     </div>
 
+    <!-- Sensitive Words Modal -->
+    <div v-if="showScanModal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    XHS Risk Check
+                </h2>
+                <button @click="showScanModal = false" class="text-gray-500 hover:text-gray-700 font-bold text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto">
+                <div v-if="scanResults.length === 0" class="text-center py-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p class="text-xl font-bold text-gray-800">Looking Safe!</p>
+                    <p class="text-sm text-gray-500 mt-2">No known restricted or sensitive words were detected in your text. You're good to post!</p>
+                </div>
+                
+                <div v-else class="flex flex-col gap-4">
+                    <p class="text-sm text-gray-600 mb-2">We found <b>{{ scanResults.length }}</b> potential risk word(s) that frequently cause XHS shadowbans or traffic limits.</p>
+                    
+                    <div v-for="(result, index) in scanResults" :key="index" class="bg-red-50 border border-red-100 p-3 rounded-lg flex items-start gap-3">
+                        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded whitespace-nowrap">{{ result.word }}</span>
+                        <div>
+                            <p class="text-xs font-bold text-red-800 mb-1">{{ result.category }}</p>
+                            <p class="text-[11px] text-red-600 line-clamp-2">"...{{ result.context }}..."</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 p-3 bg-blue-50 text-blue-800 text-xs rounded border border-blue-100">
+                        <b>💡 XHS Tip:</b> XHS algorithms suppress social/political news (like police, guards, protests) to maintain a "positive lifestyle community". It also strictly bans advertising absolutes and redirect links. Use emojis (e.g. 👮‍♂️) or Pinyin initials to discuss these safely.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-gray-200 bg-gray-50 text-right">
+                <button @click="showScanModal = false" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors shadow">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Service Worker Registration for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
@@ -280,7 +324,7 @@
                 const title = ref('带爸妈飞有多慌？\n最怕Landing砸锅')
                 const titleFont = ref("'Noto Sans SC', sans-serif")
                 const titleSize = ref('h1')
-                const content = ref('太紧张了，准备了稿，也读错几个字，还好听不清？\n🤣\n\n[image1]\n\n就这样，谢谢当天的Capt and 组员的招待和帮助，谢谢天气不错，飞机okay，过程也okay，虽然差一点medical emergency。\n\n[image2]\n\n还好全部都还算顺利，落地 也okay，就这样又创造了一个有意义的回忆的一天。')
+                const content = ref('太紧张了，准备了稿，也读错几个字，还好听不清？\n🤣\n\n[image1]\n\n就这样，谢谢当天的Capt和组员的招待和帮助，谢谢天气不错，过程也okay。路上甚至遇到警察和城管，虚惊一场。虽然差一点medical emergency。\n\n[image2]\n\n还好全部都还算顺利，完美落地！绝对是全网首发的最棒旅游攻略，记得加我微信私信领详细路线哦！')
                 const contentFont = ref("'Noto Sans SC', sans-serif")
                 const contentSize = ref('base')
                 const images = ref([]) 
@@ -291,6 +335,56 @@
                 const safeMargin = ref(48) 
                 const calculatedPages = ref([])
                 
+                const showScanModal = ref(false)
+                const scanResults = ref([])
+                
+                const scanSensitiveWords = () => {
+                    scanResults.value = []
+                    
+                    const sensitiveCategories = [
+                        {
+                            name: '广告违禁词 (Ad Law Absolutes)',
+                            words: ['最佳', '最具', '最爱', '第一', '首选', '顶级', '极致', '极品', '独一无二', '万能', '全网首发', '史无前例', '永久', '无敌', '最好用', '最便宜', '销量冠军', '绝对']
+                        },
+                        {
+                            name: '引流与营销词 (Marketing & Redirection)',
+                            words: ['下单', '购买', '淘宝', '天猫', '京东', '拼多多', '秒杀', '免费领取', '返利', '微信', '微信号', '手机号', 'QQ', '二维码', '加我', '私信领', '私信我', '链接', '代购', '赚钱', '求关注']
+                        },
+                        {
+                            name: '医疗迷信词 (Medical & Superstition)',
+                            words: ['治疗', '治愈', '药方', '根治', '消炎', '抗炎', '消斑', '排毒', '增强免疫力', '调节内分泌', '算命', '化解小人', '转运', '招财进宝', '逢考必过']
+                        },
+                        {
+                            name: '社会与政治风控 (Social/Political & Censorship Risks)',
+                            words: ['警察', '城管', '保安', '维稳', '查水表', '暴乱', '游行', '集会', '维权', '报警', '国家级', '特供', '政府', '体制内', '贪污', '黑幕', '翻墙', '删帖', '封号']
+                        }
+                    ]
+
+                    const fullText = (title.value + ' ' + content.value)
+                    
+                    sensitiveCategories.forEach(category => {
+                        category.words.forEach(word => {
+                            const regex = new RegExp(word, 'gi')
+                            let match;
+                            while ((match = regex.exec(fullText)) !== null) {
+                                const start = Math.max(0, match.index - 12)
+                                const end = Math.min(fullText.length, match.index + word.length + 12)
+                                const context = fullText.substring(start, end).replace(/\n/g, ' ')
+                                
+                                if (!scanResults.value.some(r => r.word === word)) {
+                                    scanResults.value.push({
+                                        word: word,
+                                        category: category.name,
+                                        context: context
+                                    })
+                                }
+                            }
+                        })
+                    })
+                    
+                    showScanModal.value = true
+                }
+
                 const cardDimensions = computed(() => {
                     switch (cardRatio.value) {
                         case '3:4': return { width: '768px', height: '1024px' }
@@ -508,7 +602,8 @@
                 return {
                     activeTab, title, titleFont, titleSize, titleClasses, content, contentFont, contentSize, contentClasses,
                     images, bgImageUrl, isExporting, bgStyle, cardRatio, safeMargin, cardDimensions, calculatedPages,
-                    handleImageUpload, handleBgUpload, removeImage, exportImage
+                    handleImageUpload, handleBgUpload, removeImage, exportImage,
+                    showScanModal, scanResults, scanSensitiveWords
                 }
             }
         }).mount('#app')
