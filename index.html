@@ -10,10 +10,32 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="XHS Cards">
-    <meta name="theme-color" content="#2563eb">
-    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/192px-GitHub_Invertocat_Logo.svg.png">
+    <meta name="theme-color" content="#ff2442">
+    <link rel="apple-touch-icon" href="./icon-192.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        xhs: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#ff2442',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            800: '#9f1239',
+                            900: '#881337',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,12 +138,12 @@
                 <button 
                     @click="activeTab = 'text'" 
                     class="pb-2 text-sm font-bold border-b-2 transition-colors flex-1 lg:flex-none text-center lg:text-left" 
-                    :class="activeTab === 'text' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    :class="activeTab === 'text' ? 'border-xhs-500 text-xhs-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
                 >1. Edit Text</button>
                 <button 
                     @click="activeTab = 'design'" 
                     class="pb-2 text-sm font-bold border-b-2 transition-colors flex-1 lg:flex-none text-center lg:text-left" 
-                    :class="activeTab === 'design' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                    :class="activeTab === 'design' ? 'border-xhs-500 text-xhs-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
                 >2. Layout & Style</button>
             </div>
 
@@ -133,13 +155,13 @@
                     <div>
                         <label class="text-sm font-bold text-gray-800 mb-1 block">Title</label>
                         <div class="flex gap-2 mb-2">
-                            <select v-model="titleFont" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                            <select v-model="titleFont" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500">
                                 <option value="'Noto Sans SC', sans-serif">Modern (Sans)</option>
                                 <option value="'Noto Serif SC', serif">Classic (Serif)</option>
                                 <option value="'ZCOOL KuaiLe', cursive">Playful</option>
                                 <option value="'Ma Shan Zheng', cursive">Handwriting</option>
                             </select>
-                            <select v-model="titleSize" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                            <select v-model="titleSize" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500">
                                 <option value="h1">Heading 1</option>
                                 <option value="h2">Heading 2</option>
                                 <option value="h3">Heading 3</option>
@@ -147,7 +169,7 @@
                         </div>
                         <textarea 
                             v-model="title" 
-                            class="w-full h-16 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                            class="w-full h-16 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-xhs-500 outline-none resize-none"
                             placeholder="Enter title here..."
                         ></textarea>
                     </div>
@@ -155,16 +177,16 @@
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-sm font-bold text-gray-800">Caption / Content</label>
-                            <span class="text-[9px] lg:text-[10px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">Type [image1] to place!</span>
+                            <span class="text-[9px] lg:text-[10px] text-xhs-600 font-bold bg-xhs-50 px-1.5 py-0.5 rounded">Type [image1] to place!</span>
                         </div>
                         <div class="flex gap-2 mb-2">
-                            <select v-model="contentFont" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                            <select v-model="contentFont" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500">
                                 <option value="'Noto Sans SC', sans-serif">Modern (Sans)</option>
                                 <option value="'Noto Serif SC', serif">Classic (Serif)</option>
                                 <option value="'ZCOOL KuaiLe', cursive">Playful</option>
                                 <option value="'Ma Shan Zheng', cursive">Handwriting</option>
                             </select>
-                            <select v-model="contentSize" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500">
+                            <select v-model="contentSize" class="w-1/2 p-2 bg-gray-50 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500">
                                 <option value="lg">Large</option>
                                 <option value="base">Normal</option>
                                 <option value="sm">Small</option>
@@ -172,7 +194,7 @@
                         </div>
                         <textarea 
                             v-model="content" 
-                            class="w-full h-32 lg:h-48 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                            class="w-full h-32 lg:h-48 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-xhs-500 outline-none resize-none"
                             placeholder="Type your content here..."
                         ></textarea>
                         
@@ -191,7 +213,7 @@
                 <div v-show="activeTab === 'design'" class="flex flex-col gap-5">
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-1">Card Aspect Ratio</label>
-                        <select v-model="cardRatio" class="w-full p-2 bg-gray-50 border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500 text-sm">
+                        <select v-model="cardRatio" class="w-full p-2 bg-gray-50 border border-gray-300 rounded outline-none focus:ring-1 focus:ring-xhs-500 text-sm">
                             <option value="3:4">Standard Vertical (3:4)</option>
                             <option value="9:16">Full Phone Vertical (9:16)</option>
                             <option value="1:1">Square (1:1)</option>
@@ -207,12 +229,12 @@
                             multiple
                             @change="handleImageUpload" 
                             accept="image/*"
-                            class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-xhs-50 file:text-xhs-700 hover:file:bg-xhs-100"
                         >
                         <div v-if="images.length > 0" class="mt-2 flex flex-wrap gap-2 p-2 bg-gray-50 rounded border border-gray-200">
                             <div v-for="(img, idx) in images" :key="idx" class="relative inline-block text-center group">
                                 <img :src="img" class="h-12 w-12 object-cover rounded border border-gray-300 shadow-sm" />
-                                <span class="block text-[9px] font-bold text-blue-600 mt-1 select-all">[image{{ idx + 1 }}]</span>
+                                <span class="block text-[9px] font-bold text-xhs-600 mt-1 select-all">[image{{ idx + 1 }}]</span>
                                 <button @click="removeImage(idx)" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-red-600 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">×</button>
                             </div>
                         </div>
@@ -257,7 +279,7 @@
             <div class="mt-2 pt-3 border-t border-gray-200 shrink-0">
                 <button 
                     @click="exportImage" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl transition-colors flex justify-center items-center gap-2 text-sm lg:text-base shadow-sm"
+                    class="w-full bg-xhs-600 hover:bg-xhs-700 active:bg-xhs-800 text-white font-bold py-3 px-4 rounded-xl transition-colors flex justify-center items-center gap-2 text-sm lg:text-base shadow-sm"
                     :disabled="isExporting"
                 >
                     <span v-if="isExporting">Exporting...</span>
@@ -297,7 +319,7 @@
                         </div>
                     </div>
                     
-                    <div class="mt-2 p-3 bg-blue-50 text-blue-800 text-xs rounded border border-blue-100">
+                    <div class="mt-2 p-3 bg-xhs-50 text-xhs-800 text-xs rounded border border-xhs-100">
                         <b>💡 XHS Tip:</b> XHS algorithms suppress social/political news (like police, guards, protests) to maintain a "positive lifestyle community". It also strictly bans advertising absolutes and redirect links. Use emojis (e.g. 👮‍♂️) or Pinyin initials to discuss these safely.
                     </div>
                 </div>
