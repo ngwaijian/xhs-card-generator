@@ -153,10 +153,14 @@
                               bgStyle === 'grid' ? 'bg-grid text-gray-800 dark:text-gray-100' : 
                               bgStyle === 'notebook' ? 'bg-notebook text-gray-800 dark:text-gray-100' : 
                               bgStyle === 'memo' ? 'bg-memo text-gray-800 dark:text-gray-900' : 
-                              bgStyle === 'gradient' ? 'bg-gradient-aura text-gray-800 dark:text-gray-100' : 
+                              bgStyle === 'gradient' ? 'text-gray-800 dark:text-gray-100' : 
                               'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100'
                           ]"
-                        :style="{ width: cardDimensions.width, height: cardDimensions.height }"
+                        :style="{ 
+                            width: cardDimensions.width, 
+                            height: cardDimensions.height,
+                            ...(bgStyle === 'gradient' ? { backgroundImage: `linear-gradient(135deg, ${gradientStart}, ${gradientEnd})` } : {})
+                        }"
                     >
                         <div v-if="bgStyle === 'image' && bgImageUrl" 
                              class="absolute inset-0 z-0 opacity-30 bg-cover bg-center"
@@ -440,7 +444,7 @@
                 zoomIn: '🔍 Zoom In', zoomOut: '🗗 Fit Screen',
                 contentLabel: 'Caption / Content', contentHint: 'Type [image1] to place photos!', contentPlaceholder: 'Type your content here...',
                 checkBtn: 'Check for XHS Sensitive Words', ratioLabel: 'Card Aspect Ratio', uploadLabel: 'Upload Multiple Photos',
-                bgLabel: 'Card Background', bgDots: 'Dots', bgPlain: 'Plain White', bgGrid: 'Graph Paper', bgNotebook: 'Notebook', bgMemo: 'Sticky Memo', bgGradient: 'Soft Gradient', bgCustom: 'Custom Image',
+                bgLabel: 'Card Background', bgDots: 'Dots', bgPlain: 'Plain White', bgGrid: 'Graph Paper', bgNotebook: 'Notebook', bgMemo: 'Sticky Memo', bgGradient: 'Soft Gradient', bgCustom: 'Custom Image', gradStart: 'Start Color', gradEnd: 'End Color',
                 safeMargin: 'Advanced: Safe Margin', exportBtn: 'Export {n} Pages', exporting: 'Exporting...',
                 fontModern: 'Modern (Sans)', fontClassic: 'Classic (Serif)', fontPlayful: 'Playful', fontHandwriting: 'Handwriting',
                 sizeHuge: 'Heading 1', sizeLarge: 'Heading 2', sizeMed: 'Heading 3',
@@ -460,7 +464,7 @@
                 zoomIn: '🔍 放大查看', zoomOut: '🗗 适应屏幕',
                 contentLabel: '正文', contentHint: '输入 [image1] 插入图片！', contentPlaceholder: '在此输入正文...',
                 checkBtn: '小红书敏感词检测', ratioLabel: '卡片比例', uploadLabel: '上传多张图片',
-                bgLabel: '卡片背景', bgDots: '波点', bgPlain: '纯白', bgCustom: '自定义',
+                bgLabel: '卡片背景', bgDots: '波点', bgPlain: '纯白', bgGrid: '网格纸', bgNotebook: '横线本', bgMemo: '便利贴', bgGradient: '渐变色', bgCustom: '自定义', gradStart: '起始色', gradEnd: '结束色',
                 safeMargin: '高级：安全边距', exportBtn: '导出 {n} 张卡片', exporting: '导出中...',
                 fontModern: '现代 (无衬线)', fontClassic: '经典 (衬线)', fontPlayful: '活泼', fontHandwriting: '手写',
                 sizeHuge: '大标题 1', sizeLarge: '大标题 2', sizeMed: '大标题 3',
@@ -778,7 +782,7 @@
                 return {
                     locale, isDark, t, toggleTheme, toggleLang,
                     activeTab, title, titleFont, titleSize, titleClasses, content, contentFont, contentSize, contentClasses,
-                    images,  bgStyle, cardRatio, safeMargin, cardDimensions, calculatedPages,
+                    images,  bgStyle, gradientStart, gradientEnd, cardRatio, safeMargin, cardDimensions, calculatedPages,
                     handleImageUpload, handleBgUpload, removeImage, exportImage,
                     showScanModal, scanReport, scanSensitiveWords, bgImageUrl, isExporting, mobileZoom, showEditor
                 }
