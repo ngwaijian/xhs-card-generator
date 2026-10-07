@@ -81,6 +81,44 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
 
+    
+        .bg-grid {
+            background-color: #ffffff;
+            background-image: linear-gradient(to right, #f1f5f9 2px, transparent 2px), linear-gradient(to bottom, #f1f5f9 2px, transparent 2px);
+            background-size: 2rem 2rem;
+        }
+        .dark .bg-grid {
+            background-color: #1f2937;
+            background-image: linear-gradient(to right, #374151 2px, transparent 2px), linear-gradient(to bottom, #374151 2px, transparent 2px);
+        }
+        
+        .bg-notebook {
+            background-color: #ffffff;
+            background-image: linear-gradient(transparent 95%, #e2e8f0 95%);
+            background-size: 100% 3rem;
+            line-height: 3rem;
+        }
+        .dark .bg-notebook {
+            background-color: #1f2937;
+            background-image: linear-gradient(transparent 95%, #374151 95%);
+        }
+        
+        .bg-memo {
+            background-color: #fef08a; /* Yellow-200 */
+            box-shadow: inset 0 0 40px rgba(202, 138, 4, 0.1);
+        }
+        .dark .bg-memo {
+            background-color: #713f12; /* Yellow-900 */
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .bg-gradient-aura {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+        .dark .bg-gradient-aura {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -110,7 +148,14 @@
                         :key="index"
                         :id="'export-card-' + (index + 1)"
                         class="card-container flex flex-col transition-all duration-300 relative overflow-hidden shrink-0"
-                        :class="[bgStyle === 'dots' ? 'bg-dots bg-white dark:bg-gray-800' : (bgStyle === 'plain' ? 'bg-white dark:bg-gray-800' : 'bg-white dark:bg-gray-800')]"
+                        :class="[
+                              bgStyle === 'dots' ? 'bg-dots bg-white dark:bg-gray-800' : 
+                              bgStyle === 'grid' ? 'bg-grid text-gray-800 dark:text-gray-100' : 
+                              bgStyle === 'notebook' ? 'bg-notebook text-gray-800 dark:text-gray-100' : 
+                              bgStyle === 'memo' ? 'bg-memo text-gray-800 dark:text-gray-900' : 
+                              bgStyle === 'gradient' ? 'bg-gradient-aura text-gray-800 dark:text-gray-100' : 
+                              'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100'
+                          ]"
                         :style="{ width: cardDimensions.width, height: cardDimensions.height }"
                     >
                         <div v-if="bgStyle === 'image' && bgImageUrl" 
@@ -383,7 +428,7 @@
                 zoomIn: '🔍 Zoom In', zoomOut: '🗗 Fit Screen',
                 contentLabel: 'Caption / Content', contentHint: 'Type [image1] to place photos!', contentPlaceholder: 'Type your content here...',
                 checkBtn: 'Check for XHS Sensitive Words', ratioLabel: 'Card Aspect Ratio', uploadLabel: 'Upload Multiple Photos',
-                bgLabel: 'Card Background', bgDots: 'Dots', bgPlain: 'Plain White', bgCustom: 'Custom Image',
+                bgLabel: 'Card Background', bgDots: 'Dots', bgPlain: 'Plain White', bgGrid: 'Graph Paper', bgNotebook: 'Notebook', bgMemo: 'Sticky Memo', bgGradient: 'Soft Gradient', bgCustom: 'Custom Image',
                 safeMargin: 'Advanced: Safe Margin', exportBtn: 'Export {n} Pages', exporting: 'Exporting...',
                 fontModern: 'Modern (Sans)', fontClassic: 'Classic (Serif)', fontPlayful: 'Playful', fontHandwriting: 'Handwriting',
                 sizeHuge: 'Heading 1', sizeLarge: 'Heading 2', sizeMed: 'Heading 3',
@@ -700,7 +745,7 @@
                             const canvas = await html2canvas(element, {
                                 scale: 2, 
                                 useCORS: true,
-                                backgroundColor: bgStyle.value === 'dots' ? (document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff') : (bgStyle.value === 'plain' ? (document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff') : null),
+                                backgroundColor: (['dots', 'plain', 'grid', 'notebook'].includes(bgStyle.value)) ? (document.documentElement.classList.contains('dark') ? '#1f2937' : '#ffffff') : (bgStyle.value === 'memo' ? (document.documentElement.classList.contains('dark') ? '#713f12' : '#fef08a') : null),
                             })
                             
                             const link = document.createElement('a')
